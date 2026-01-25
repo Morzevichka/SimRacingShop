@@ -34,8 +34,11 @@ public class AuthorizationServerConfig {
             "/register",
             "/login",
             "/verify-email",
-            "/verify-email/**"
+            "/verify-email/**",
+            "/.well-known/**"
     };
+
+    private static final String LOGIN_URL = "/login";
 
     @Bean
     @Order(1)
@@ -53,7 +56,7 @@ public class AuthorizationServerConfig {
                 )
                 .exceptionHandling(ex -> ex
                                 .defaultAuthenticationEntryPointFor(
-                                        new LoginUrlAuthenticationEntryPoint("/login"),
+                                        new LoginUrlAuthenticationEntryPoint(LOGIN_URL),
                                         new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
                                 )
                 )
@@ -75,7 +78,7 @@ public class AuthorizationServerConfig {
                 )
                 .authenticationProvider(customAuthenticationProvider)
                 .formLogin(form -> form
-                        .loginPage("/login").permitAll()
+                        .loginPage(LOGIN_URL).permitAll()
                         .failureHandler(customAuthenticationFailerHandler)
                 )
                 .build();
