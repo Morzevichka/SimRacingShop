@@ -25,6 +25,11 @@ server:
       cookie:
         name: AUTHSESSION
 
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
 oauth2:
   client_id: ${CLIENT_ID}
   client_secret: ${CLIENT_SECRET}

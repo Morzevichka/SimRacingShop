@@ -14,6 +14,12 @@ server:
     session:
       cookie:
         name: CLIENTSESSION
+      timeout: 30m
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
 
 oauth2:
   client_id: ${CLIENT_ID}
@@ -24,3 +30,4 @@ logging:
     org.springframework.security.oauth2: TRACE
     org.springframework.security: TRACE
     org.springframework.data.redis: TRACE
+    org.springframework.cloud: TRACE

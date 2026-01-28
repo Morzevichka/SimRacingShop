@@ -72,6 +72,7 @@ public class ClientConfig {
                         .build()
                 )
                 .tokenSettings(TokenSettings.builder()
+                        .accessTokenTimeToLive(Duration.ofMinutes(5))
                         .refreshTokenTimeToLive(Duration.ofMinutes(60))
                         .reuseRefreshTokens(false)
                         .build()
