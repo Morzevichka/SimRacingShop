@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Email verify</title>
+</head>
+<body>
+<div th:if="${success}" class="success">
+  <p th:text="${success}"></p>
+</div>
+<div th:if="${error}" class="success">
+  <p th:text="${error}"></p>
+  <a href="/verify-email/resend">Try again</a>
+</div>
+<div>
+  <a href="/login">Return to Sign In</a>
+</div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign in</title>
+</head>
+<body>
+
+<h2>Login</h2>
+
+<div th:if="${errorMessage}" class="error">
+    <p th:text="${errorMessage}"></p>
+</div>
+
+<div th:if="${success}" class="success">
+    <p th:text="${success}"></p>
+</div>
+
+<form method="post" action="/login">
+    <div>
+        <input type="text" name="username" placeholder="Email" required>
+    </div>
+    <div>
+        <input type="password" name="password" placeholder="Password" required>
+    </div>
+
+    <button type="submit">Sign in</button>
+
+    <div th:if="${param.error}">
+        Invalid credentials
+    </div>
+</form>
+<a href="/register">Sign up</a>
+
+</body>
+</html>

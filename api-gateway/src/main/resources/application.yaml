@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: api-gateway
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ${REDIS_PASSWORD}
+
+server:
+  port: 8080
+  servlet:
+    session:
+      cookie:
+        name: CLIENTSESSION
+      timeout: 30m
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
+oauth2:
+  client_id: ${CLIENT_ID}
+  client_secret: ${CLIENT_SECRET}
+
+logging:
+  level:
+    org.springframework.security.oauth2: TRACE
+    org.springframework.security: TRACE
+    org.springframework.data.redis: TRACE
+    org.springframework.cloud: TRACE
