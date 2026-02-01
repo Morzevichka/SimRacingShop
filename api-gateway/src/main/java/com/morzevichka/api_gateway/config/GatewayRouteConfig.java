@@ -27,16 +27,6 @@ public class GatewayRouteConfig {
 
     @Bean
     RouterFunction<ServerResponse> routerFunction() {
-//        return route()
-//                .path("/api/**", b -> b
-//                        .filter(lb("CHAT-SERVICE"))
-//                        .filter(addAuthorizationHeaderFilter)
-//                        .build()
-//                )
-//                .path("/oauth2/**", b -> b
-//                        .filter(lb("AUTH-SERVICE"))
-//                )
-//                .build();
         return
                 route("api")
                         .onError(Exception.class, this::handleException)

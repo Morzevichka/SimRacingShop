@@ -14,6 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Slf4j
@@ -49,7 +50,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public String register(
-            @Valid UserRegisterDto dto,
+            @Valid @RequestBody UserRegisterDto dto,
             BindingResult br,
             Model model,
             RedirectAttributes redirectAttributes

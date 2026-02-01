@@ -34,7 +34,7 @@ public class UserService {
 
     public User getById(UUID id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException(id.toString()));
+                .orElseThrow(() -> new UserNotFoundException(id.toString()));
     }
 
     public boolean existsByEmail(String email) {
