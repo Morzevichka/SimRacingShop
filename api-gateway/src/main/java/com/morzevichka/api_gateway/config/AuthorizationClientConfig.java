@@ -31,6 +31,7 @@ public class AuthorizationClientConfig {
 
     private static final String[] WHITE_LIST = {
             "/.well-known/**",
+            "/internal/**",
             "/error/**",
             "/error"
     };

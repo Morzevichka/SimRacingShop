@@ -5,6 +5,7 @@ import com.morzevichka.auth_service.exception.user.UserNotFoundException;
 import com.morzevichka.auth_service.kafka.KafkaSender;
 import com.morzevichka.auth_service.model.User;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
@@ -14,12 +15,13 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EmailVerificationService {
 
     private final RedisService redisService;
     private final KafkaSender kafkaSender;
     private final UserService userService;
-    private final SecureRandom secureRandom = new SecureRandom();
+    private final VerificationCodeGenerator verificationCodeGenerator;
 
     private static final Duration DURATION_VERIFICATION_CODE = Duration.ofMinutes(30);
 
@@ -28,8 +30,8 @@ public class EmailVerificationService {
             return ;
         }
 
-        String code = createVerificationCode();
-        System.out.println(code);
+        String code = verificationCodeGenerator.createVerificationCode();
+        log.info("Verification code: {}", code);
         redisService.saveVerificationCode(code, user.getId(), DURATION_VERIFICATION_CODE);
         kafkaSender.send();
     }
@@ -43,7 +45,7 @@ public class EmailVerificationService {
             }
 
             sendVerification(user);
-        } catch (UserNotFoundException | EmailVerificationException _) {
+        } catch (UserNotFoundException _) {
 
         }
     }
@@ -54,11 +56,5 @@ public class EmailVerificationService {
 
         userService.verifyEmail(userId);
         redisService.deleteVerificationCode(code);
-    }
-
-    private String createVerificationCode() {
-        byte[] bytes = new byte[32];
-        secureRandom.nextBytes(bytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 }
