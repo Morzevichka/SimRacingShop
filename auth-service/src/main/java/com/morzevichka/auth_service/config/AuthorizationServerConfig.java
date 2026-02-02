@@ -17,8 +17,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
-
-
 @Configuration
 public class AuthorizationServerConfig {
 
@@ -33,7 +31,6 @@ public class AuthorizationServerConfig {
             "/js/**",
             "/register",
             "/login",
-            "/verify-email",
             "/verify-email/**",
             "/.well-known/**"
     };
@@ -74,7 +71,7 @@ public class AuthorizationServerConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req -> req
                         .requestMatchers(WHITE_LIST).permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().denyAll()
                 )
                 .authenticationProvider(customAuthenticationProvider)
                 .formLogin(form -> form

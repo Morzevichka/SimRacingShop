@@ -50,7 +50,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public String register(
-            @Valid @RequestBody UserRegisterDto dto,
+            @Valid UserRegisterDto dto,
             BindingResult br,
             Model model,
             RedirectAttributes redirectAttributes

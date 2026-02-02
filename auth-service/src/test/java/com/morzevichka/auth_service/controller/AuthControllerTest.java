@@ -62,8 +62,9 @@ public class AuthControllerTest {
 
         mockMvc.perform(
                 post("/register")
-                        .content(objectMapper.writeValueAsString(dto))
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("login", "test")
+                        .param("email", "test@gmail.com")
+                        .param("password", "password")
                 )
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login"))

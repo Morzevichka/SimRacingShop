@@ -21,19 +21,12 @@ import org.springframework.security.web.SecurityFilterChain;
 @RequiredArgsConstructor
 public class AuthorizationClientConfig {
 
-    @Value("${oauth2.client_id}")
-    private String clientId;
-
-    @Value("${oauth2.client_secret}")
-    private String clientSecret;
-
-    private static final String CLIENT_REGISTRATION_ID = "auth-server";
-
     private static final String[] WHITE_LIST = {
             "/.well-known/**",
             "/internal/**",
             "/error/**",
-            "/error"
+            "/error",
+            "/verify-email"
     };
 
     @Bean
@@ -48,8 +41,8 @@ public class AuthorizationClientConfig {
     }
 
     @Bean
-    ClientRegistrationRepository clientRegistrationRepository() {
-        return new InMemoryClientRegistrationRepository(this.clientRegistration());
+    ClientRegistrationRepository clientRegistrationRepository(ClientRegistration clientRegistration) {
+        return new InMemoryClientRegistrationRepository(clientRegistration);
     }
 
     @Bean
@@ -57,24 +50,6 @@ public class AuthorizationClientConfig {
         return new HttpSessionOAuth2AuthorizedClientRepository();
     }
 
-    @Bean
-    ClientRegistration clientRegistration() {
-        return ClientRegistration.withRegistrationId(CLIENT_REGISTRATION_ID)
-                .clientId(clientId)
-                .clientSecret(clientSecret)
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .redirectUri("http://localhost:8080/login/oauth2/code/" + CLIENT_REGISTRATION_ID)
-                .scope("openid", "profile")
-                .authorizationUri("http://localhost:8081/oauth2/authorize")
-                .tokenUri("http://localhost:8081/oauth2/token")
-                .jwkSetUri("http://localhost:8081/oauth2/jwks")
-                .clientSettings(ClientRegistration.ClientSettings.builder()
-                        .requireProofKey(false)
-                        .build()
-                )
-                .build();
-    }
 
     @Bean
     OAuth2AuthorizedClientManager oAuth2AuthorizedClientManager(

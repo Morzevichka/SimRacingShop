@@ -1,6 +1,8 @@
 package com.morzevichka.api_gateway.config;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -13,12 +15,11 @@ import java.util.Objects;
 @Configuration
 @RequiredArgsConstructor
 @EnableRedisHttpSession
+@EnableConfigurationProperties(RedisProperties.class)
 public class RedisConfig {
 
-    private final RedisProperties properties;
-
     @Bean
-    RedisConnectionFactory jedisConnectionFactory() {
+    RedisConnectionFactory jedisConnectionFactory(@Qualifier("redisProperties") RedisProperties properties) {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
         config.setHostName(properties.getHost());
         config.setPort(properties.getPort());

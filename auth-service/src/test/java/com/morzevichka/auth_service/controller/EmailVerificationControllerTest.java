@@ -33,7 +33,7 @@ public class EmailVerificationControllerTest {
         )
                 .andExpect(status().isOk())
                 .andExpect(view().name("verify-email"))
-                .andExpect(model().attributeExists("success"));
+                .andExpect(model().attributeExists("message"));
     }
 
     @Test
@@ -50,14 +50,7 @@ public class EmailVerificationControllerTest {
     }
 
     @Test
-    void shouldReturnVerifyEmailResendPage() throws Exception {
-        mockMvc.perform(get("/verify-email/resend"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("verify-email-resend"));
-    }
-
-    @Test
-    void shouldRedirectLoginPageWhenResendCalled() throws Exception {
+    void shouldRedirectVerificationPageWhenResendCalled() throws Exception {
         doNothing().when(emailVerificationService).resendVerification(any());
 
         mockMvc.perform(
@@ -65,7 +58,7 @@ public class EmailVerificationControllerTest {
                         .param("email", "test@gmail.com")
         )
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login"))
+                .andExpect(redirectedUrl("/verify-email"))
                 .andExpect(flash().attributeExists("message"));
     }
 }

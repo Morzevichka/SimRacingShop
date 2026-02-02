@@ -1,19 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta th:if="${message}" charset="UTF-8" http-equiv="refresh" content="5;url=http://localhost:3000/">
   <title>Email verify</title>
 </head>
 <body>
-<div th:if="${success}" class="success">
-  <p th:text="${success}"></p>
+<div th:if="${message}" class="success">
+  <p th:text="${message}"></p>
+  <div>
+    <p>You will redirect to main page of the shop</p>
+  </div>
 </div>
-<div th:if="${error}" class="success">
+<div th:if="${error}" class="error">
   <p th:text="${error}"></p>
-  <a href="/verify-email/resend">Try again</a>
-</div>
-<div>
-  <a href="/login">Return to Sign In</a>
+  <form method="post" action="/verify-email/resend">
+    <div>
+      <input type="email" name="email" placeholder="Email" required>
+    </div>
+    <button type="submit">Resend</button>
+  </form>
 </div>
 </body>
 </html>

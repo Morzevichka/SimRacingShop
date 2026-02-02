@@ -18,28 +18,19 @@ public class EmailVerificationController {
 
     @GetMapping("/verify-email")
     public String verification(
-            @RequestParam String code,
+            @RequestParam(required = false) String code,
             Model model
     ) {
-        try {
-            emailVerificationService.verify(code);
-            model.addAttribute(
-                    "success",
-                    "Email successfully verified"
-            );
-        } catch (EmailVerificationException ex) {
-            model.addAttribute(
-                    "error",
-                    "This link is expired or invalid"
-            );
+        if (code != null) {
+            try {
+                emailVerificationService.verify(code);
+                model.addAttribute("message", "Email successfully verified");
+            } catch (EmailVerificationException ex) {
+                model.addAttribute("error", "This link is expired or invalid");
+            }
         }
 
         return "verify-email";
-    }
-
-    @GetMapping("/verify-email/resend")
-    public String resendPage() {
-        return "verify-email-resend";
     }
 
     @PostMapping("/verify-email/resend")
@@ -53,6 +44,6 @@ public class EmailVerificationController {
                 "If the email exists, verification link was sent"
         );
 
-        return "redirect:/login";
+        return "redirect:/verify-email";
     }
 }
