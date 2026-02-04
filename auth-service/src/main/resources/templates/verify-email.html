@@ -15,8 +15,10 @@
     </div>
   </section>
 
-  <section th:if="${error}">
-    <p th:text="${error}"></p>
+  <section th:unless="${message}">
+    <div th:if="${error}">
+      <p th:text="${error}"></p>
+    </div>
 
     <form method="post" action="/verify-email/resend">
       <div>

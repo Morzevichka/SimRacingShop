@@ -7,7 +7,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -22,7 +25,7 @@ public class TokenServiceTest {
     private TokenService tokenService;
 
     @Mock
-    private RedisService redisService;
+    private RedisTemplate<String, String> redisTemplate;
 
     @Test
     void createToken_shouldGenerateNotNullToken() {
@@ -49,46 +52,48 @@ public class TokenServiceTest {
     @Test
     void verifyAccountRecoveryToken_shouldReturnUserId_whenAccountRecoveryTokenExists() {
         String token = "TOKEN";
-        when(redisService.getUserIdByToken(token, RedisTokenType.ACCOUNT_RECOVERY)).thenReturn(Optional.of(UUID.randomUUID()));
+
+        ValueOperations<String, String> operations = mock(ValueOperations.class);
+        when(redisTemplate.opsForValue()).thenReturn(operations);
+        when(operations.get(RedisTokenType.ACCOUNT_RECOVERY.buildTokenKey(token))).thenReturn(UUID.randomUUID().toString());
 
         UUID userId = tokenService.verifyAccountRecoveryToken(token);
 
         assertThat(userId).isNotNull();
-
-        verify(redisService).getUserIdByToken(token, RedisTokenType.ACCOUNT_RECOVERY);
     }
 
     @Test
     void verifyAccountRecoveryToken_shouldThrowException_whenTokenNotExists() {
         String token = "TOKEN";
 
-        when(redisService.getUserIdByToken(token, RedisTokenType.ACCOUNT_RECOVERY)).thenThrow(new InvalidAccountRecoveryTokenException("not found"));
+        ValueOperations<String, String> operations = mock(ValueOperations.class);
+        when(redisTemplate.opsForValue()).thenReturn(operations);
+        when(operations.get(RedisTokenType.ACCOUNT_RECOVERY.buildTokenKey(token))).thenReturn(null);
 
         assertThatThrownBy(() -> tokenService.verifyAccountRecoveryToken(token)).isInstanceOf(InvalidAccountRecoveryTokenException.class);
-
-        verify(redisService).getUserIdByToken(token, RedisTokenType.ACCOUNT_RECOVERY);
     }
 
     @Test
     void verifyEmailVerificationToken_shouldReturnUserId_WhenEmailVerificationTokenExists() {
         String token = "TOKEN";
-        when(redisService.getUserIdByToken(token, RedisTokenType.EMAIL_VERIFICATION)).thenReturn(Optional.of(UUID.randomUUID()));
+
+        ValueOperations<String, String> operations = mock(ValueOperations.class);
+        when(redisTemplate.opsForValue()).thenReturn(operations);
+        when(operations.get(RedisTokenType.EMAIL_VERIFICATION.buildTokenKey(token))).thenReturn(UUID.randomUUID().toString());
 
         UUID userId = tokenService.verifyEmailVerificationToken(token);
 
         assertThat(userId).isNotNull();
-
-        verify(redisService).getUserIdByToken(token, RedisTokenType.EMAIL_VERIFICATION);
     }
 
     @Test
     void verifyEmailVerificationToken_shouldThrowException_whenTokenNotExists() {
         String token = "TOKEN";
 
-        when(redisService.getUserIdByToken(token, RedisTokenType.EMAIL_VERIFICATION)).thenThrow(new InvalidEmailVerificationTokenException("not found"));
+        ValueOperations<String, String> operations = mock(ValueOperations.class);
+        when(redisTemplate.opsForValue()).thenReturn(operations);
+        when(operations.get(RedisTokenType.EMAIL_VERIFICATION.buildTokenKey(token))).thenReturn(null);
 
         assertThatThrownBy(() -> tokenService.verifyEmailVerificationToken(token)).isInstanceOf(InvalidEmailVerificationTokenException.class);
-
-        verify(redisService).getUserIdByToken(token, RedisTokenType.EMAIL_VERIFICATION);
     }
 }

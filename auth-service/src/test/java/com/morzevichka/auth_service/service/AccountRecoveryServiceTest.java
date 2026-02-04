@@ -5,7 +5,9 @@ import com.morzevichka.auth_service.dto.ResetPasswordDto;
 import com.morzevichka.auth_service.exception.account_recovery.InvalidAccountRecoveryTokenException;
 import com.morzevichka.auth_service.exception.password.PasswordMismatchException;
 import com.morzevichka.auth_service.exception.user.UserNotFoundException;
-import com.morzevichka.auth_service.kafka.KafkaSender;
+import com.morzevichka.auth_service.messaging.event.AccountRecoveryEvent;
+import com.morzevichka.auth_service.messaging.outbox.OutboxService;
+import com.morzevichka.auth_service.messaging.topic.KafkaTopic;
 import com.morzevichka.auth_service.model.token.RedisTokenType;
 import com.morzevichka.auth_service.model.user.User;
 import org.junit.jupiter.api.Test;
@@ -31,13 +33,13 @@ public class AccountRecoveryServiceTest {
     private UserService userService;
 
     @Mock
-    private KafkaSender kafkaSender;
-
-    @Mock
-    private RedisService redisService;
+    private OutboxService outboxService;
 
     @Mock
     private TokenService tokenService;
+
+    @Mock
+    private TokenProperties properties;
 
     @Test
     void sendAccountRecoveryLink_shouldCreateTokenAndSendMessage_whenUserExists() {
@@ -50,15 +52,17 @@ public class AccountRecoveryServiceTest {
 
         when(tokenService.createToken()).thenReturn(token);
         when(userService.getByEmail(testDto.email())).thenReturn(testUser);
+        when(properties.getAccountRecoveryTtl()).thenReturn(Duration.ofMinutes(1));
+        doNothing().when(outboxService).publishEvent(eq(KafkaTopic.ACCOUNT_RECOVERY), any(AccountRecoveryEvent.class));
 
         accountRecoveryService.sendAccountRecoveryLink(testDto);
 
-        InOrder inOrder = inOrder(tokenService, userService, redisService, kafkaSender);
+        InOrder inOrder = inOrder(tokenService, userService, tokenService, outboxService);
 
         inOrder.verify(tokenService).createToken();
         inOrder.verify(userService).getByEmail(eq(testDto.email()));
-        inOrder.verify(redisService).saveToken(eq(token), eq(testUser.getId()), any(Duration.class), eq(RedisTokenType.ACCOUNT_RECOVERY));
-        inOrder.verify(kafkaSender).send();
+        inOrder.verify(tokenService).saveToken(eq(token), eq(testUser.getId()), any(Duration.class), eq(RedisTokenType.ACCOUNT_RECOVERY));
+        inOrder.verify(outboxService).publishEvent(eq(KafkaTopic.ACCOUNT_RECOVERY), any(AccountRecoveryEvent.class));
     }
 
     @Test
@@ -70,8 +74,8 @@ public class AccountRecoveryServiceTest {
 
         accountRecoveryService.sendAccountRecoveryLink(testDto);
 
-        verify(redisService, never()).saveToken(any(), any(), any(), any());
-        verify(kafkaSender, never()).send();
+        verify(tokenService, never()).saveToken(any(), any(), any(), any());
+        verify(outboxService, never()).publishEvent(eq(KafkaTopic.ACCOUNT_RECOVERY), any(AccountRecoveryEvent.class));
     }
 
     @Test
@@ -85,11 +89,11 @@ public class AccountRecoveryServiceTest {
 
         accountRecoveryService.resetPassword(testDto);
 
-        InOrder inOrder = inOrder(tokenService, userService, redisService);
+        InOrder inOrder = inOrder(tokenService, userService, tokenService);
 
         inOrder.verify(tokenService).verifyAccountRecoveryToken(eq(testDto.token()));
         inOrder.verify(userService).changePassword(eq(userId), eq(testDto.newPassword()));
-        inOrder.verify(redisService).deleteToken(eq(testDto.token()), eq(RedisTokenType.ACCOUNT_RECOVERY));
+        inOrder.verify(tokenService).deleteToken(eq(testDto.token()), eq(RedisTokenType.ACCOUNT_RECOVERY));
     }
 
     @Test
@@ -102,7 +106,7 @@ public class AccountRecoveryServiceTest {
         assertThatThrownBy(() -> accountRecoveryService.resetPassword(testDto)).isInstanceOf(PasswordMismatchException.class);
 
         verify(userService, never()).changePassword(any(), any());
-        verify(redisService, never()).deleteToken(any(), any());
+        verify(tokenService, never()).deleteToken(any(), any());
     }
 
     @Test
@@ -111,11 +115,13 @@ public class AccountRecoveryServiceTest {
         final String password = "password";
         final ResetPasswordDto testDto = new ResetPasswordDto(token, password, password);
 
-        when(tokenService.verifyAccountRecoveryToken(token)).thenThrow(new InvalidAccountRecoveryTokenException("not found"));
+        when(tokenService.verifyAccountRecoveryToken(token))
+                .thenThrow(new InvalidAccountRecoveryTokenException("not found"));
 
-        assertThatThrownBy(() -> accountRecoveryService.resetPassword(testDto)).isInstanceOf(InvalidAccountRecoveryTokenException.class);
+        assertThatThrownBy(() -> accountRecoveryService.resetPassword(testDto))
+                .isInstanceOf(InvalidAccountRecoveryTokenException.class);
 
         verify(userService, never()).changePassword(any(), any());
-        verify(redisService, never()).deleteToken(any(), any());
+        verify(tokenService, never()).deleteToken(any(), any());
     }
 }

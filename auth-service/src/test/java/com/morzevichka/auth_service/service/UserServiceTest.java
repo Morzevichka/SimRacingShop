@@ -4,6 +4,9 @@ import com.morzevichka.auth_service.dto.UserRegisterDto;
 import com.morzevichka.auth_service.exception.user.UserAccountLockedException;
 import com.morzevichka.auth_service.exception.user.UserEmailNotVerifiedException;
 import com.morzevichka.auth_service.exception.user.UserNotFoundException;
+import com.morzevichka.auth_service.messaging.event.Event;
+import com.morzevichka.auth_service.messaging.outbox.OutboxService;
+import com.morzevichka.auth_service.messaging.topic.KafkaTopic;
 import com.morzevichka.auth_service.model.user.Role;
 import com.morzevichka.auth_service.model.user.User;
 import com.morzevichka.auth_service.repository.UserRepository;
@@ -31,6 +34,9 @@ public class UserServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private OutboxService outboxService;
 
     @Test
     void getByEmail_shouldReturnUser_whenEmailExists() {

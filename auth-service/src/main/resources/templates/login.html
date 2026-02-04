@@ -9,6 +9,9 @@
 
 <div th:if="${error}" class="error">
     <p th:text="${error}"></p>
+    <div th:if="${errorType == 'EMAIL_NOT_VERIFIED'}">
+        <a href="/verify-email">Send verification email again</a>
+    </div>
 </div>
 
 <div th:if="${success}" class="success">

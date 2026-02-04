@@ -29,7 +29,7 @@ public class EmailVerificationControllerTest {
 
         mockMvc.perform(
                 get("/verify-email")
-                        .queryParam("code", "code")
+                        .queryParam("token", "token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(view().name("verify-email"))
@@ -42,7 +42,7 @@ public class EmailVerificationControllerTest {
 
         mockMvc.perform(
                 get("/verify-email")
-                        .queryParam("code", "code")
+                        .queryParam("token", "token")
                 )
                 .andExpect(status().isOk())
                 .andExpect(view().name("verify-email"))

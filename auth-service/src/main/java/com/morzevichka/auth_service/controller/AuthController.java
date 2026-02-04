@@ -33,9 +33,15 @@ public class AuthController {
 
         if (session != null) {
             Object error = session.getAttribute("LOGIN_ERROR");
+            Object type = session.getAttribute("LOGIN_ERROR_TYPE");
             if (error != null) {
                 model.addAttribute("error", error);
                 session.removeAttribute("LOGIN_ERROR");
+            }
+
+            if (type != null) {
+                model.addAttribute("errorType", type);
+                session.removeAttribute("LOGIN_ERROR_TYPE");
             }
         }
 

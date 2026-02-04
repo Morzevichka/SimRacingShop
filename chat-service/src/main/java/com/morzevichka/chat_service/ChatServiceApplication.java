@@ -19,5 +19,4 @@ public class ChatServiceApplication {
 	public ResponseEntity<String> test(HttpServletRequest request) {
 		return ResponseEntity.ok("String" + request.getHeader("Authorization"));
 	}
-
 }

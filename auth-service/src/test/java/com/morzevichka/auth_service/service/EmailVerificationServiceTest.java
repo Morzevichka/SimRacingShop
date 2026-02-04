@@ -2,18 +2,20 @@ package com.morzevichka.auth_service.service;
 
 import com.morzevichka.auth_service.exception.email.InvalidEmailVerificationTokenException;
 import com.morzevichka.auth_service.exception.user.UserNotFoundException;
-import com.morzevichka.auth_service.kafka.KafkaSender;
+import com.morzevichka.auth_service.messaging.event.EmailVerificationRequestEvent;
+import com.morzevichka.auth_service.messaging.outbox.OutboxService;
+import com.morzevichka.auth_service.messaging.topic.KafkaTopic;
 import com.morzevichka.auth_service.model.token.RedisTokenType;
 import com.morzevichka.auth_service.model.user.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Duration;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
@@ -28,16 +30,16 @@ public class EmailVerificationServiceTest {
     private EmailVerificationService emailVerificationService;
 
     @Mock
-    private RedisService redisService;
-
-    @Mock
-    private KafkaSender kafkaSender;
+    private TokenService tokenService;
 
     @Mock
     private UserService userService;
 
     @Mock
-    private TokenService tokenService;
+    private OutboxService outboxService;
+
+    @Mock
+    private TokenProperties properties;
 
     @Test
     void sendVerification_shouldSaveAndSendToken_whenEmailNotVerified() {
@@ -51,9 +53,10 @@ public class EmailVerificationServiceTest {
 
         emailVerificationService.sendVerification(testUser);
 
-        verify(redisService).saveToken(eq(token), eq(testUser.getId()), any(Duration.class), eq(RedisTokenType.EMAIL_VERIFICATION));
+        InOrder inOrder = inOrder(tokenService, outboxService);
 
-        verify(kafkaSender).send();
+        verify(tokenService).saveToken(eq(token), eq(testUser.getId()), any(Duration.class), eq(RedisTokenType.EMAIL_VERIFICATION));
+        verify(outboxService).publishEvent(eq(KafkaTopic.EMAIL_VERIFICATION), any(EmailVerificationRequestEvent.class));
     }
 
     @Test
@@ -66,7 +69,7 @@ public class EmailVerificationServiceTest {
 
         emailVerificationService.sendVerification(testUser);
 
-        verifyNoInteractions(redisService, kafkaSender, tokenService);
+        verifyNoInteractions(tokenService, outboxService, tokenService);
     }
 
     @Test
@@ -121,7 +124,7 @@ public class EmailVerificationServiceTest {
 
         verify(tokenService).verifyEmailVerificationToken(eq(token));
         verify(userService).verifyEmail(eq(userId));
-        verify(redisService).deleteToken(eq(token), eq(RedisTokenType.EMAIL_VERIFICATION));
+        verify(tokenService).deleteToken(eq(token), eq(RedisTokenType.EMAIL_VERIFICATION));
     }
 
     @Test
@@ -134,6 +137,6 @@ public class EmailVerificationServiceTest {
 
         verify(tokenService).verifyEmailVerificationToken(eq(token));
         verify(userService, never()).verifyEmail(any());
-        verify(redisService, never()).getUserIdByToken(any(), eq(RedisTokenType.EMAIL_VERIFICATION));
+        verify(tokenService, never()).getUserIdByToken(any(), eq(RedisTokenType.EMAIL_VERIFICATION));
     }
 }

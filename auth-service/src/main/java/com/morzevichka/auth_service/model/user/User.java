@@ -1,5 +1,6 @@
 package com.morzevichka.auth_service.model.user;
 
+import com.morzevichka.auth_service.exception.email.EmailAlreadyVerifiedException;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -42,6 +43,9 @@ public class User {
     private boolean accountLocked;
 
     public void verifyEmail() {
+        if (isEmailVerified()) {
+            throw new EmailAlreadyVerifiedException("Email already verified");
+        }
         this.emailVerified = true;
     }
 

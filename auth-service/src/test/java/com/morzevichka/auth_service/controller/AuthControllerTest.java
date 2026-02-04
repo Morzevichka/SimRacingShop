@@ -4,6 +4,7 @@ import com.morzevichka.auth_service.dto.UserRegisterDto;
 import com.morzevichka.auth_service.model.user.User;
 import com.morzevichka.auth_service.service.EmailVerificationService;
 import com.morzevichka.auth_service.service.UserService;
+import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -13,6 +14,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.Map;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -39,6 +41,22 @@ public class AuthControllerTest {
         mockMvc.perform(get("/login"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("login"));
+    }
+
+    @Test
+    void getLoginView_shouldReturnLoginViewWithErrorAttribute_whenErrorDuringLoginOccur() throws Exception {
+        mockMvc.perform(get("/login").sessionAttr("LOGIN_ERROR", "error"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("login"))
+                .andExpect(model().attributeExists("error"));
+    }
+
+    @Test
+    void getLoginView_shouldReturnLoginViewWithErrorType_whenSessionHasLoginErrorTypeAttribute() throws Exception {
+        mockMvc.perform(get("/login").sessionAttr("LOGIN_ERROR_TYPE", "type"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("login"))
+                .andExpect(model().attributeExists("errorType"));
     }
 
     @Test

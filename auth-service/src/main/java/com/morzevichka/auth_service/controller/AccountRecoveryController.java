@@ -2,11 +2,8 @@ package com.morzevichka.auth_service.controller;
 
 import com.morzevichka.auth_service.dto.AccountRecoveryDto;
 import com.morzevichka.auth_service.dto.ResetPasswordDto;
-import com.morzevichka.auth_service.model.token.RedisTokenType;
 import com.morzevichka.auth_service.service.AccountRecoveryService;
-import com.morzevichka.auth_service.service.RedisService;
 import com.morzevichka.auth_service.service.TokenService;
-import com.morzevichka.auth_service.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
