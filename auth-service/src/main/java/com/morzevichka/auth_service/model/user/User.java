@@ -1,4 +1,4 @@
-package com.morzevichka.auth_service.model;
+package com.morzevichka.auth_service.model.user;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -43,5 +43,9 @@ public class User {
 
     public void verifyEmail() {
         this.emailVerified = true;
+    }
+
+    public void changePassword(String hashedPassword) {
+        this.passwordHash = hashedPassword;
     }
 }

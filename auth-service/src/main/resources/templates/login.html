@@ -7,17 +7,28 @@
 
 <h2>Login</h2>
 
-<div th:if="${errorMessage}" class="error">
-    <p th:text="${errorMessage}"></p>
+<div th:if="${error}" class="error">
+    <p th:text="${error}"></p>
 </div>
 
 <div th:if="${success}" class="success">
     <p th:text="${success}"></p>
 </div>
 
+<div th:if="${param.error}">
+    Invalid credentials
+</div>
+
 <form method="post" action="/login">
     <div>
+        Email
+    </div>
+    <div>
         <input type="text" name="username" placeholder="Email" required>
+    </div>
+    <div>
+        Password
+        <a href="/account-recovery">Forgot password?</a>
     </div>
     <div>
         <input type="password" name="password" placeholder="Password" required>
@@ -25,11 +36,11 @@
 
     <button type="submit">Sign in</button>
 
-    <div th:if="${param.error}">
-        Invalid credentials
-    </div>
 </form>
-<a href="/register">Sign up</a>
+<div>
+    Don't have an account?
+    <a href="/register">Sign up</a>
+</div>
 
 </body>
 </html>

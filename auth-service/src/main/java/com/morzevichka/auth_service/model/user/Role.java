@@ -1,4 +1,4 @@
-package com.morzevichka.auth_service.model;
+package com.morzevichka.auth_service.model.user;
 
 public enum Role {
     ROLE_USER,

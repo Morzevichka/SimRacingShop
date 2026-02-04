@@ -1,6 +1,6 @@
 package com.morzevichka.auth_service.security;
 
-import com.morzevichka.auth_service.model.User;
+import com.morzevichka.auth_service.model.user.User;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;

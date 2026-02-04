@@ -1,7 +1,7 @@
 package com.morzevichka.auth_service.repository;
 
-import com.morzevichka.auth_service.model.Role;
-import com.morzevichka.auth_service.model.User;
+import com.morzevichka.auth_service.model.user.Role;
+import com.morzevichka.auth_service.model.user.User;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -47,7 +47,7 @@ public class UserRepositoryTest {
 
 
     @Test
-    void shouldFindUserByEmail() {
+    void findByEmail_shouldReturnUser_whenUserExists() {
         userRepository.save(testUser);
 
         Optional<User> foundUser = userRepository.findByEmail("test@gmail.com");
@@ -56,7 +56,7 @@ public class UserRepositoryTest {
     }
 
     @Test
-    void shouldFindUserById() {
+    void findById_shouldReturnUser_whenUserExists() {
         User savedUser = userRepository.save(testUser);
 
         Optional<User> foundUser = userRepository.findById(savedUser.getId());
@@ -66,7 +66,7 @@ public class UserRepositoryTest {
     }
 
     @Test
-    void shouldReturnTrueWhenEmailExists() {
+    void existsByEmail_shouldReturnTrue_whenEmailExists() {
         User savedUser = userRepository.save(testUser);
 
         boolean exists = userRepository.existsByEmail(savedUser.getEmail());
@@ -75,7 +75,7 @@ public class UserRepositoryTest {
     }
 
     @Test
-    void shouldReturnTrueWhenLoginExists() {
+    void existsByLogin_shouldReturnTrue_whenLoginExists() {
         User savedUser = userRepository.save(testUser);
 
         boolean exists = userRepository.existsByLogin(savedUser.getLogin());

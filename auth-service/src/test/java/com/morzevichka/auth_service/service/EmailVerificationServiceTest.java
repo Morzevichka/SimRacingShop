@@ -1,9 +1,10 @@
 package com.morzevichka.auth_service.service;
 
-import com.morzevichka.auth_service.exception.email.EmailVerificationException;
+import com.morzevichka.auth_service.exception.email.InvalidEmailVerificationTokenException;
 import com.morzevichka.auth_service.exception.user.UserNotFoundException;
 import com.morzevichka.auth_service.kafka.KafkaSender;
-import com.morzevichka.auth_service.model.User;
+import com.morzevichka.auth_service.model.token.RedisTokenType;
+import com.morzevichka.auth_service.model.user.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -11,10 +12,11 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -35,32 +37,28 @@ public class EmailVerificationServiceTest {
     private UserService userService;
 
     @Mock
-    private VerificationCodeGenerator verificationCodeGenerator;
+    private TokenService tokenService;
 
     @Test
-    void shouldSendVerificationCodeWhenEmailNotVerified() {
-        User testUser = User.builder()
+    void sendVerification_shouldSaveAndSendToken_whenEmailNotVerified() {
+        final String token = "TOKEN";
+        final User testUser = User.builder()
                 .id(UUID.randomUUID())
                 .email("test@gmail.com")
                 .build();
 
-        when(verificationCodeGenerator.createVerificationCode())
-                .thenReturn("CODE123");
+        when(tokenService.createToken()).thenReturn(token);
 
         emailVerificationService.sendVerification(testUser);
 
-        verify(redisService).saveVerificationCode(
-                eq("CODE123"),
-                eq(testUser.getId()),
-                any()
-        );
+        verify(redisService).saveToken(eq(token), eq(testUser.getId()), any(Duration.class), eq(RedisTokenType.EMAIL_VERIFICATION));
 
         verify(kafkaSender).send();
     }
 
     @Test
-    void shouldNotSendVerificationCodeWhenEmailVerified() {
-        User testUser = User.builder()
+    void sendVerification_shouldNotSaveAndSendToken_whenEmailVerified() {
+        final User testUser = User.builder()
                 .id(UUID.randomUUID())
                 .email("test@gmail.com")
                 .emailVerified(true)
@@ -68,27 +66,26 @@ public class EmailVerificationServiceTest {
 
         emailVerificationService.sendVerification(testUser);
 
-        verifyNoInteractions(redisService, kafkaSender, verificationCodeGenerator);
+        verifyNoInteractions(redisService, kafkaSender, tokenService);
     }
 
     @Test
-    void shouldResendVerificationCodeWhenEmailNotVerified() {
-        User testUser = User.builder()
+    void resendVerification_shouldResendToken_whenEmailNotVerified() {
+        final User testUser = User.builder()
                 .id(UUID.randomUUID())
                 .email("test@gmail.com")
                 .build();
 
         when(userService.getByEmail(testUser.getEmail())).thenReturn(testUser);
-        doNothing().when(emailVerificationService).sendVerification(testUser);
 
         emailVerificationService.resendVerification(testUser.getEmail());
 
-        verify(emailVerificationService).sendVerification(any());
+        verify(emailVerificationService).sendVerification(eq(testUser));
     }
 
     @Test
-    void shouldNotResendVerificationCodeWhenEmailVerified() {
-        User testUser = User.builder()
+    void resendVerification_shouldNotResendToken_whenEmailVerified() {
+        final User testUser = User.builder()
                 .id(UUID.randomUUID())
                 .email("test@gmail.com")
                 .emailVerified(true)
@@ -98,45 +95,45 @@ public class EmailVerificationServiceTest {
 
         emailVerificationService.resendVerification(testUser.getEmail());
 
+        verify(emailVerificationService, never()).sendVerification(eq(testUser));
+    }
+
+    @Test
+    void resendVerification_shouldNotResendToken_whenUserNotFound() {
+        final String testEmail = "test@gmail.com";
+
+        when(userService.getByEmail(testEmail))
+                .thenThrow(new UserNotFoundException("not found"));
+
+        emailVerificationService.resendVerification(testEmail);
+
         verify(emailVerificationService, never()).sendVerification(any());
     }
 
     @Test
-    void shouldNotResendVerificationCodeWhenUserNotFound() {
-        when(userService.getByEmail("test@gmail.com"))
-                .thenThrow(new UserNotFoundException("test@gmail.com"));
+    void verify_shouldVerifyEmail_whenTokenExists() {
+        final String token = "TOKEN";
+        final UUID userId = UUID.randomUUID();
 
-        emailVerificationService.resendVerification("test@gmail.com");
+        when(tokenService.verifyEmailVerificationToken(token)).thenReturn(userId);
 
-        verify(emailVerificationService, never()).sendVerification(any());
+        emailVerificationService.verify(token);
+
+        verify(tokenService).verifyEmailVerificationToken(eq(token));
+        verify(userService).verifyEmail(eq(userId));
+        verify(redisService).deleteToken(eq(token), eq(RedisTokenType.EMAIL_VERIFICATION));
     }
 
     @Test
-    void shouldVerifyEmailWhenCodeExists() {
-        String code = "CODE";
+    void verify_shouldNotVerifyEmail_whenTokenNotExists() {
+        final String token = "TOKEN";
 
-        when(redisService.getUserIdByVerificationCode(code)).thenReturn(Optional.of(UUID.randomUUID()));
-        doNothing().when(userService).verifyEmail(any());
-        doNothing().when(redisService).deleteVerificationCode(any());
+        when(tokenService.verifyEmailVerificationToken(token)).thenThrow(new InvalidEmailVerificationTokenException("not found"));
 
-        emailVerificationService.verify(code);
+        assertThatThrownBy(() -> emailVerificationService.verify(token)).isInstanceOf(InvalidEmailVerificationTokenException.class);
 
-        verify(redisService).getUserIdByVerificationCode(any());
-        verify(userService).verifyEmail(any());
-        verify(redisService).deleteVerificationCode(any());
-    }
-
-    @Test
-    void shouldNotVerifyEmailWhenCodeNotExists() {
-        String code = "CODE";
-
-        when(redisService.getUserIdByVerificationCode(code))
-                .thenThrow(new EmailVerificationException("not found"));
-
-        assertThrows(EmailVerificationException.class, () -> emailVerificationService.verify(code));
-
-        verify(redisService).getUserIdByVerificationCode(code);
+        verify(tokenService).verifyEmailVerificationToken(eq(token));
         verify(userService, never()).verifyEmail(any());
-        verify(redisService, never()).deleteVerificationCode(any());
+        verify(redisService, never()).getUserIdByToken(any(), eq(RedisTokenType.EMAIL_VERIFICATION));
     }
 }

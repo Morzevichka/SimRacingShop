@@ -26,7 +26,8 @@ public class AuthorizationClientConfig {
             "/internal/**",
             "/error/**",
             "/error",
-            "/verify-email"
+            "/verify-email",
+            "/account-recovery/**"
     };
 
     @Bean

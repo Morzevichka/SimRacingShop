@@ -20,8 +20,8 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public @Nullable Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        String email = authentication.getName();
-        String password = authentication.getCredentials().toString();
+        final String email = authentication.getName();
+        final String password = authentication.getCredentials().toString();
 
         CustomUserDetails userDetails;
         try {

@@ -32,6 +32,7 @@ public class AuthorizationServerConfig {
             "/register",
             "/login",
             "/verify-email/**",
+            "/account-recovery/**",
             "/.well-known/**"
     };
 

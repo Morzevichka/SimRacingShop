@@ -37,8 +37,8 @@ public class GatewayRouteConfig {
                 .filter(lb("chat-service"))
                 .filter(addAuthorizationHeaderFilter)
                 .build()
-                .and(route("verify-email")
-                        .route(path("/verify-email"), request -> {
+                .and(route("verify-email-password-reset")
+                        .route(path("/verify-email", "/account-recovery/**"), request -> {
 
                             URI modifiedUri = UriComponentsBuilder.fromUri(request.uri())
                                     .host("localhost")

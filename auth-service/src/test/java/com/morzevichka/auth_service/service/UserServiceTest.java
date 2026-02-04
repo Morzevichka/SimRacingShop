@@ -1,9 +1,11 @@
 package com.morzevichka.auth_service.service;
 
 import com.morzevichka.auth_service.dto.UserRegisterDto;
+import com.morzevichka.auth_service.exception.user.UserAccountLockedException;
+import com.morzevichka.auth_service.exception.user.UserEmailNotVerifiedException;
 import com.morzevichka.auth_service.exception.user.UserNotFoundException;
-import com.morzevichka.auth_service.model.Role;
-import com.morzevichka.auth_service.model.User;
+import com.morzevichka.auth_service.model.user.Role;
+import com.morzevichka.auth_service.model.user.User;
 import com.morzevichka.auth_service.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,10 +17,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
@@ -33,77 +33,90 @@ public class UserServiceTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void shouldReturnUserWhenEmailExists() {
-        String testEmail = "test@gmail.com";
-        User user = User.builder()
+    void getByEmail_shouldReturnUser_whenEmailExists() {
+        final String testEmail = "test@gmail.com";
+        final User user = User.builder()
                 .email(testEmail)
                 .build();
 
-        when(userRepository.findByEmail(user.getEmail()))
-                .thenReturn(Optional.of(user));
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 
         User foundUser = userService.getByEmail(testEmail);
 
-        assertNotNull(foundUser);
-        assertEquals(foundUser.getEmail(), user.getEmail());
+        assertThat(foundUser).isNotNull();
+        assertThat(foundUser.getEmail()).isEqualTo(user.getEmail());
     }
 
     @Test
-    void shouldThrowExceptionWhenUserNotFoundByEmail() {
-        String testEmail = "test@gmail.com";
+    void getByEmail_shouldThrowException_whenEmailNotExists() {
+        final String testEmail = "test@gmail.com";
 
         when(userRepository.findByEmail(testEmail))
                 .thenReturn(Optional.empty());
 
-        assertThrows(UserNotFoundException.class,
-                () -> userService.getByEmail(testEmail));
+        assertThatThrownBy(() -> userService.getByEmail(testEmail)).isInstanceOf(UserNotFoundException.class);
     }
 
     @Test
-    void shouldReturnUserWhenIdExists() {
-        UUID uuid = UUID.randomUUID();
-        User user = User.builder().id(uuid).build();
+    void getById_shouldReturnUser_whenIdExists() {
+        final UUID uuid = UUID.randomUUID();
+        final User user = User.builder().id(uuid).build();
 
         when(userRepository.findById(uuid)).thenReturn(Optional.of(user));
 
         User foundUser = userService.getById(uuid);
 
-        assertNotNull(foundUser);
-        assertEquals(user.getId(), foundUser.getId());
+        assertThat(foundUser).isNotNull();
+        assertThat(foundUser.getId()).isEqualTo(user.getId());
     }
 
     @Test
-    void shouldThrowExceptionWhenUserNotFoundById() {
-        UUID uuid = UUID.randomUUID();
+    void getById_shouldThrowException_whenIdNotExists() {
+        final UUID uuid = UUID.randomUUID();
         when(userRepository.findById(uuid)).thenReturn(Optional.empty());
 
-        assertThrows(UserNotFoundException.class,
-                () -> userService.getById(uuid));
+        assertThatThrownBy(() -> userService.getById(uuid)).isInstanceOf(UserNotFoundException.class);
     }
 
     @Test
-    void shouldReturnTrueWhenEmailExists() {
-        String testEmail = "test@gmail.com";
+    void existsByEmail_shouldReturnTrue_whenEmailExists() {
+        final String testEmail = "test@gmail.com";
 
         when(userRepository.existsByEmail(testEmail)).thenReturn(true);
 
-        assertTrue(userService.existsByEmail(testEmail));
-        assertFalse(userService.existsByEmail("not" + testEmail));
+        assertThat(userService.existsByEmail(testEmail)).isTrue();
     }
 
     @Test
-    void shouldReturnTrueWhenLoginExists() {
+    void existsByEmail_shouldReturnFalse_whenEmailNotExists() {
+        final String testEmail = "test@gmail.com";
+
+        when(userRepository.existsByEmail(testEmail)).thenReturn(false);
+
+        assertThat(userService.existsByEmail(testEmail)).isFalse();
+    }
+
+    @Test
+    void existsByLogin_shouldReturnTrue_whenLoginExists() {
         String testLogin = "test";
 
         when(userRepository.existsByLogin(testLogin)).thenReturn(true);
 
         assertThat(userService.existsByLogin(testLogin)).isTrue();
-        assertThat(userService.existsByLogin("not" + testLogin)).isFalse();
     }
 
     @Test
-    void shouldNotThrowExceptionWhenEmailVerifiedAndAccountNotLocked() {
-        User user = User.builder()
+    void existsByLogin_shouldReturnFalse_whenLoginNotExists() {
+        String testLogin = "test";
+
+        when(userRepository.existsByLogin(testLogin)).thenReturn(false);
+
+        assertThat(userService.existsByLogin(testLogin)).isFalse();
+    }
+
+    @Test
+    void validateUserStatus_shouldValidateUser_whenEmailVerifiedAndAccountNotLocked() {
+        final User user = User.builder()
                 .emailVerified(true)
                 .accountLocked(false)
                 .build();
@@ -112,8 +125,28 @@ public class UserServiceTest {
     }
 
     @Test
-    void shouldReturnUserWhenRegistrationSuccessful() {
-        UserRegisterDto dto = new UserRegisterDto("test", "test@gmail.com", "123123");
+    void validateUserStatus_shouldThrowUserEmailNotVerifiedException_whenEmailNotVerified() {
+        final User user = User.builder()
+                .emailVerified(false)
+                .accountLocked(false)
+                .build();
+
+        assertThatThrownBy(() -> userService.validateUserStatus(user)).isInstanceOf(UserEmailNotVerifiedException.class);
+    }
+
+    @Test
+    void validateUserStatus_shouldThrowUserAccountLockedException_whenAccountLocked() {
+        final User user = User.builder()
+                .emailVerified(true)
+                .accountLocked(true)
+                .build();
+
+        assertThatThrownBy(() -> userService.validateUserStatus(user)).isInstanceOf(UserAccountLockedException.class);
+    }
+
+    @Test
+    void register_shouldRegisterUser() {
+        final UserRegisterDto dto = new UserRegisterDto("test", "test@gmail.com", "123123");
 
         when(passwordEncoder.encode(dto.password())).thenReturn("hashed");
         when(userRepository.existsByEmail(dto.email())).thenReturn(false);
@@ -134,20 +167,55 @@ public class UserServiceTest {
     }
 
     @Test
-    void shouldVerifyEmail() {
-        UUID uuid = UUID.randomUUID();
-        User user = User.builder()
+    void verifyEmail_shouldVerifyEmail_WhenUserExists() {
+        final UUID uuid = UUID.randomUUID();
+        final User user = User.builder()
                 .id(uuid)
                 .emailVerified(false)
                 .build();
 
         when(userRepository.findById(uuid)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         userService.verifyEmail(uuid);
 
         assertThat(user.isEmailVerified()).isTrue();
 
         verify(userRepository).save(user);
+    }
+
+    @Test
+    void verifyEmail_shouldThrowException_whenUserNotExists() {
+        when(userRepository.findById(any())).thenThrow(UserNotFoundException.class);
+
+        assertThatThrownBy(() -> userService.verifyEmail(UUID.randomUUID())).isInstanceOf(UserNotFoundException.class);
+
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void changePassword_shouldChangPassword_whenUserExists() {
+        final String newPassword = "newPassword";
+        final User testUser = User.builder().id(UUID.randomUUID()).passwordHash("password").build();
+
+        when(userRepository.findById(testUser.getId())).thenReturn(Optional.of(testUser));
+        when(passwordEncoder.encode(newPassword)).thenReturn(newPassword);
+
+        userService.changePassword(testUser.getId(), newPassword);
+
+        assertThat(testUser.getPasswordHash()).isEqualTo(newPassword);
+
+        verify(userRepository).save(any());
+    }
+
+    @Test
+    void changePassword_shouldThrowException_whenUserNotExists() {
+        final String newPassword = "newPassword";
+        final User testUser = User.builder().id(UUID.randomUUID()).passwordHash("password").build();
+
+        when(userRepository.findById(testUser.getId())).thenThrow(UserNotFoundException.class);
+
+        assertThatThrownBy(() -> userService.changePassword(testUser.getId(), newPassword)).isInstanceOf(UserNotFoundException.class);
+
+        verify(userRepository, never()).save(any());
     }
 }

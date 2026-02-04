@@ -33,9 +33,8 @@ eureka:
 oauth2:
   client_id: ${CLIENT_ID}
   client_secret: ${CLIENT_SECRET}
+  client_registration_id: "auth-server"
 
-logging:
-  level:
-    org.springframework.security.oauth2: DEBUG
-    org.springframework.security: TRACE
-    org.springframework.security.authentication: TRACE
+token:
+  account-recovery-ttl: 1_800_000 # 30m
+  email-verification-ttl: 1_800_000 # 30m
