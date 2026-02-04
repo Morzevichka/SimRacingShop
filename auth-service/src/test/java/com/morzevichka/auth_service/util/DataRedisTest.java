@@ -19,8 +19,7 @@ import java.lang.annotation.Target;
 @ContextConfiguration(classes = {
         DataRedisAutoConfiguration.class,
         RedisService.class,
-        RedisConfig.class,
-        RedisProperties.class
+        RedisConfig.class
 })
 public @interface DataRedisTest {
 }

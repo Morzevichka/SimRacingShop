@@ -1,23 +1,17 @@
 package com.morzevichka.auth_service.service;
 
 import com.morzevichka.auth_service.dto.UserRegisterDto;
-import com.morzevichka.auth_service.exception.email.EmailVerificationException;
 import com.morzevichka.auth_service.exception.user.UserAccountLockedException;
 import com.morzevichka.auth_service.exception.user.UserAlreadyExistsException;
 import com.morzevichka.auth_service.exception.user.UserEmailNotVerifiedException;
 import com.morzevichka.auth_service.exception.user.UserNotFoundException;
-import com.morzevichka.auth_service.kafka.KafkaSender;
-import com.morzevichka.auth_service.model.Role;
-import com.morzevichka.auth_service.model.User;
+import com.morzevichka.auth_service.model.user.Role;
+import com.morzevichka.auth_service.model.user.User;
 import com.morzevichka.auth_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.security.SecureRandom;
-import java.util.Base64;
-import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -79,6 +73,12 @@ public class UserService {
     public void verifyEmail(UUID userId) {
         User user = getById(userId);
         user.verifyEmail();
+        userRepository.save(user);
+    }
+
+    public void changePassword(UUID userId, String password) {
+        User user = getById(userId);
+        user.changePassword(passwordEncoder.encode(password));
         userRepository.save(user);
     }
 }

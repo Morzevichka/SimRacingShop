@@ -1,5 +1,6 @@
 package com.morzevichka.auth_service.service;
 
+import com.morzevichka.auth_service.model.token.RedisTokenType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -15,20 +16,18 @@ public class RedisService {
 
     private final RedisTemplate<String, String> redisTemplate;
 
-    private static final String PREFIX_REDIS_KEY = "email:verify:";
-
-    public void saveVerificationCode(String code, UUID value, Duration TTL) {
+    public void saveToken(String token, UUID userId, Duration TTL, RedisTokenType type) {
         redisTemplate.opsForValue().set(
-                PREFIX_REDIS_KEY + code,
-                value.toString(),
+                type.buildKey(token),
+                userId.toString(),
                 TTL
         );
     }
 
-    public Optional<UUID> getUserIdByVerificationCode(String code) {
-        String userId = redisTemplate.opsForValue().get(PREFIX_REDIS_KEY + code);
+    public Optional<UUID> getUserIdByToken(String token, RedisTokenType type) {
+        String userId = redisTemplate.opsForValue().get(type.buildKey(token));
 
-        if (Objects.isNull(userId)) {
+        if (userId == null) {
             return Optional.empty();
         }
 
@@ -39,7 +38,7 @@ public class RedisService {
         }
     }
 
-    public void deleteVerificationCode(String key) {
-        redisTemplate.delete(PREFIX_REDIS_KEY + key);
+    public void deleteToken(String token, RedisTokenType type) {
+        redisTemplate.delete(type.buildKey(token));
     }
 }

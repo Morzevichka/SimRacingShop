@@ -1,6 +1,6 @@
 package com.morzevichka.auth_service.security;
 
-import com.morzevichka.auth_service.model.User;
+import com.morzevichka.auth_service.model.user.User;
 import com.morzevichka.auth_service.service.UserService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

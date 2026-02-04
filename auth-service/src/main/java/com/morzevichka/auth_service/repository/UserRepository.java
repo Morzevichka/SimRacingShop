@@ -1,6 +1,6 @@
 package com.morzevichka.auth_service.repository;
 
-import com.morzevichka.auth_service.model.User;
+import com.morzevichka.auth_service.model.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

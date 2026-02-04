@@ -1,49 +1,39 @@
 package com.morzevichka.auth_service.controller;
 
-import com.morzevichka.auth_service.exception.email.EmailVerificationException;
 import com.morzevichka.auth_service.service.EmailVerificationService;
+import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequiredArgsConstructor
+@RequestMapping("/verify-email")
 public class EmailVerificationController {
 
     private final EmailVerificationService emailVerificationService;
 
-    @GetMapping("/verify-email")
-    public String verification(
-            @RequestParam(required = false) String code,
-            Model model
-    ) {
+    private static final String VERIFY_EMAIL_VIEW = "verify-email";
+
+    @GetMapping
+    public String verification(@RequestParam(required = false) String code, Model model) {
         if (code != null) {
-            try {
-                emailVerificationService.verify(code);
-                model.addAttribute("message", "Email successfully verified");
-            } catch (EmailVerificationException ex) {
-                model.addAttribute("error", "This link is expired or invalid");
-            }
+            emailVerificationService.verify(code);
+            model.addAttribute("message", "Email successfully verified");
         }
 
-        return "verify-email";
+        return VERIFY_EMAIL_VIEW;
     }
 
-    @PostMapping("/verify-email/resend")
-    public String resend(
-            @RequestParam String email,
-            RedirectAttributes redirectAttributes
-    ) {
+    @PostMapping("/resend")
+    public String resend(@RequestParam @Email String email, Model model) {
         emailVerificationService.resendVerification(email);
-        redirectAttributes.addFlashAttribute(
-                "message",
-                "If the email exists, verification link was sent"
-        );
+        model.addAttribute("message", "If the email exists, verification link was sent");
 
-        return "redirect:/verify-email";
+        return VERIFY_EMAIL_VIEW;
     }
 }

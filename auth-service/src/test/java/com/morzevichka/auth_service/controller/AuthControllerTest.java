@@ -1,7 +1,7 @@
 package com.morzevichka.auth_service.controller;
 
 import com.morzevichka.auth_service.dto.UserRegisterDto;
-import com.morzevichka.auth_service.model.User;
+import com.morzevichka.auth_service.model.user.User;
 import com.morzevichka.auth_service.service.EmailVerificationService;
 import com.morzevichka.auth_service.service.UserService;
 import org.junit.jupiter.api.Test;
@@ -35,23 +35,21 @@ public class AuthControllerTest {
     private EmailVerificationService emailVerificationService;
 
     @Test
-    void shouldReturnLoginPage() throws Exception {
+    void getLoginView_shouldReturnLoginView() throws Exception {
         mockMvc.perform(get("/login"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("login"));
     }
 
     @Test
-    void shouldReturnRegisterPage() throws Exception{
+    void getRegisterView_shouldReturnRegisterView() throws Exception{
         mockMvc.perform(get("/register"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("register"));
     }
 
     @Test
-    void shouldRegisterUserAndRedirectToLoginPage() throws Exception {
-        UserRegisterDto dto = new UserRegisterDto("test", "test@gmail.com", "password");
-
+    void postRegister_shouldRegisterUserAndRedirectToLoginView() throws Exception {
         User registeredUser = User.builder()
                 .id(UUID.randomUUID())
                 .email("test@gmail.com")
@@ -75,16 +73,15 @@ public class AuthControllerTest {
     }
 
     @Test
-    void shouldRedirectToRegisterPageWhenValidationErrorExists() throws Exception{
-        UserRegisterDto dto = new UserRegisterDto("test", "test", "test");
-
+    void postRegister_shouldReturnRegisterViewWithErrorAttribute_whenDtoInvalid() throws Exception{
         mockMvc.perform(
                 post("/register")
-                        .content(objectMapper.writeValueAsString(dto))
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("login", "test")
+                        .param("email", "test")
+                        .param("password", "password")
                 )
                 .andExpect(status().isOk())
                 .andExpect(view().name("register"))
-                .andExpect(model().attributeExists("errorMessage"));
+                .andExpect(model().attributeExists("error"));
     }
 }

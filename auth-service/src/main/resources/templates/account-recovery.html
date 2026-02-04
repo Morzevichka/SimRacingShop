@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Восстановление аккаунта</title>
+</head>
+<body>
+
+<main>
+
+  <section th:if="${success}">
+    <p>Ссылка для восстановления отправлена на:</p>
+    <p th:text="${success}"></p>
+  </section>
+
+  <section th:unless="${success}">
+    <header>
+      <p>
+        Забыли пароль? Введите email — мы отправим ссылку для восстановления.
+      </p>
+    </header>
+
+    <form action="/account-recovery" method="post">
+      <div>
+        <label for="email">Email</label>
+      </div>
+
+      <div>
+        <input id="email" type="email" name="email" placeholder="Email" required>
+      </div>
+
+      <div>
+        <button type="submit">Отправить письмо для восстановления</button>
+      </div>
+    </form>
+  </section>
+
+</main>
+
+</body>
+</html>
