@@ -1,8 +1,6 @@
 package com.morzevichka.auth_service.util;
 
 import com.morzevichka.auth_service.config.RedisConfig;
-import com.morzevichka.auth_service.config.RedisProperties;
-import com.morzevichka.auth_service.service.RedisService;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration;
 import org.springframework.test.context.ContextConfiguration;

@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: notification-service
+
+  datasource:
+    url: ${DB_URL}/${DB_NOTIFICATION_DATABASE}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_NOTIFICATION_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+  kafka:
+    bootstrap-servers: localhost:9092
+
+    consumer:
+      group-id: notification-service
+
+
+  mail:
+    host: smtp.gmail.com
+    port: 465
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          ssl:
+            enable: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
+server:
+  port: 8083

@@ -20,9 +20,9 @@ public class EmailVerificationController {
     private static final String VERIFY_EMAIL_VIEW = "verify-email";
 
     @GetMapping
-    public String verification(@RequestParam(required = false) String code, Model model) {
-        if (code != null) {
-            emailVerificationService.verify(code);
+    public String verification(@RequestParam(required = false) String token, Model model) {
+        if (token != null) {
+            emailVerificationService.verify(token);
             model.addAttribute("message", "Email successfully verified");
         }
 

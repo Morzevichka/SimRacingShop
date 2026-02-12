@@ -1,14 +1,22 @@
 package com.morzevichka.auth_service.service;
 
-import com.morzevichka.auth_service.exception.email.InvalidEmailVerificationTokenException;
 import com.morzevichka.auth_service.exception.user.UserNotFoundException;
-import com.morzevichka.auth_service.kafka.KafkaSender;
+import com.morzevichka.auth_service.messaging.event.EmailVerificationRequestEvent;
+import com.morzevichka.auth_service.messaging.outbox.OutboxEvent;
+import com.morzevichka.auth_service.messaging.outbox.OutboxEventStatus;
+import com.morzevichka.auth_service.messaging.outbox.OutboxRepository;
+import com.morzevichka.auth_service.messaging.outbox.OutboxService;
+import com.morzevichka.auth_service.messaging.publisher.OutboxKafkaPublisher;
+import com.morzevichka.auth_service.messaging.topic.KafkaTopic;
 import com.morzevichka.auth_service.model.token.RedisTokenType;
 import com.morzevichka.auth_service.model.user.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.util.UUID;
@@ -16,29 +24,29 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@EnableConfigurationProperties(TokenProperties.class)
 public class EmailVerificationService {
 
-    private final RedisService redisService;
-    private final KafkaSender kafkaSender;
     private final UserService userService;
     private final TokenService tokenService;
+    private final OutboxService outboxService;
+    private final TokenProperties properties;
 
-    @Value("${token.email-verification-ttl}")
-    private static Long ttlMillis;
-
-    private static final Duration EMAIL_VERIFICATION_TTL = Duration.ofMillis(ttlMillis);
-
+    @Transactional
     public void sendVerification(User user) {
-        if (user.isEmailVerified()) {
-            return ;
-        }
+        if (user.isEmailVerified()) return ;
 
         final String token = tokenService.createToken();
         log.info("Verification token: {}", token);
-        redisService.saveToken(token, user.getId(), EMAIL_VERIFICATION_TTL, RedisTokenType.EMAIL_VERIFICATION);
-        kafkaSender.send();
+        tokenService.saveToken(token, user.getId(), properties.getEmailVerificationTtl(), RedisTokenType.EMAIL_VERIFICATION);
+
+        outboxService.publishEvent(
+                KafkaTopic.EMAIL_VERIFICATION,
+                new EmailVerificationRequestEvent(UUID.randomUUID(), user.getLogin(), user.getEmail(), token)
+        );
     }
 
+    @Transactional
     public void resendVerification(String email) {
         try {
             User user = userService.getByEmail(email);
@@ -57,6 +65,6 @@ public class EmailVerificationService {
         UUID userId = tokenService.verifyEmailVerificationToken(token);
 
         userService.verifyEmail(userId);
-        redisService.deleteToken(token, RedisTokenType.EMAIL_VERIFICATION);
+        tokenService.deleteToken(token, RedisTokenType.EMAIL_VERIFICATION);
     }
 }

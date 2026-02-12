@@ -18,6 +18,9 @@ spring:
       port: 6379
       password: ${REDIS_PASSWORD}
 
+  kafka:
+    bootstrap-servers: localhost:9092
+
 server:
   port: 8081
   servlet:
@@ -36,5 +39,5 @@ oauth2:
   client_registration_id: "auth-server"
 
 token:
-  account-recovery-ttl: 1_800_000 # 30m
-  email-verification-ttl: 1_800_000 # 30m
+  account-recovery-ttl: 15m
+  email-verification-ttl: 15m

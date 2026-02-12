@@ -9,11 +9,15 @@ import com.morzevichka.auth_service.model.user.Role;
 import com.morzevichka.auth_service.model.user.User;
 import com.morzevichka.auth_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -49,6 +53,7 @@ public class UserService {
         }
     }
 
+    @Transactional
     public User register(UserRegisterDto dto) {
         if (existsByEmail(dto.email())) {
             throw new UserAlreadyExistsException(dto.email() + " is already exists");
@@ -67,18 +72,24 @@ public class UserService {
                 .accountLocked(false)
                 .build();
 
-        return userRepository.save(user);
+        user = userRepository.save(user);
+
+        return user;
     }
 
     public void verifyEmail(UUID userId) {
         User user = getById(userId);
         user.verifyEmail();
         userRepository.save(user);
+
+        log.info("Email verified: {}", user.getId());
     }
 
     public void changePassword(UUID userId, String password) {
         User user = getById(userId);
         user.changePassword(passwordEncoder.encode(password));
         userRepository.save(user);
+
+        log.info("Password changed: {}", user.getId());
     }
 }
