@@ -17,6 +17,7 @@ import java.net.URI;
 import java.util.List;
 
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
+import static org.springframework.cloud.gateway.server.mvc.filter.RewriteLocationResponseHeaderFilterFunctions.rewriteLocationResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.path;
@@ -32,25 +33,17 @@ public class GatewayRouteConfig {
     @Bean
     RouterFunction<ServerResponse> routerFunction() {
         return route("api")
-                .onError(Exception.class, this::handleException)
-                .route(path("/api/**"), http())
-                .filter(lb("chat-service"))
-                .filter(addAuthorizationHeaderFilter)
-                .build()
+                        .onError(Exception.class, this::handleException)
+                        .route(path("/api/**"), http())
+                        .filter(lb("chat-service"))
+                        .filter(addAuthorizationHeaderFilter)
+                        .build()
                 .and(route("verify-email-password-reset")
-                        .route(path("/verify-email", "/account-recovery/**"), request -> {
-
-                            URI modifiedUri = UriComponentsBuilder.fromUri(request.uri())
-                                    .host("localhost")
-                                    .port(8081)
-                                    .build()
-                                    .toUri();
-
-                            System.out.println(modifiedUri);
-                            return ServerResponse.temporaryRedirect(modifiedUri).build();
-                        })
-                        .build());
-
+                        .onError(Exception.class, this::handleException)
+                        .route(path("/verify-email", "/account-recovery/**"), http())
+                        .filter(lb("auth-service"))
+                        .build())
+                ;
     }
 
     private ServerResponse handleException(Throwable throwable, ServerRequest request) {
@@ -62,7 +55,5 @@ public class GatewayRouteConfig {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(errorDto);
     }
-
-
 }
 
