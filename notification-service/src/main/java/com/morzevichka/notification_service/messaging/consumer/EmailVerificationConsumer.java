@@ -1,9 +1,8 @@
 package com.morzevichka.notification_service.messaging.consumer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.morzevichka.notification_service.messaging.Topic;
+import com.morzevichka.notification_service.messaging.KafkaTopic;
 import com.morzevichka.notification_service.messaging.event.EmailVerificationRequestEvent;
 import com.morzevichka.notification_service.messaging.idempotency.ProcessedEvent;
 import com.morzevichka.notification_service.messaging.idempotency.ProcessedEventRepository;
@@ -29,7 +28,7 @@ public class EmailVerificationConsumer {
     private final ObjectMapper mapper;
 
     @Transactional
-    @KafkaListener(topics = Topic.EMAIL_VERIFICATION_REQUEST, groupId = "notification-service")
+    @KafkaListener(topics = KafkaTopic.EMAIL_VERIFICATION_REQUEST, groupId = "notification-service")
     public void emailVerificationRequestHandler(
             String stringPayload,
             @Header(KafkaHeaders.RECEIVED_KEY) UUID eventId
@@ -37,7 +36,7 @@ public class EmailVerificationConsumer {
         log.info("Received email-verification-request-topic with id {}", eventId);
         log.info("{}", stringPayload);
 
-        if (repository.existsByEventIdAndEventTopic(eventId, Topic.EMAIL_VERIFICATION_REQUEST)) {
+        if (repository.existsByEventIdAndEventTopic(eventId, KafkaTopic.EMAIL_VERIFICATION_REQUEST)) {
             return ;
         }
 
@@ -53,7 +52,7 @@ public class EmailVerificationConsumer {
 
         ProcessedEvent processedEvent = ProcessedEvent.builder()
                 .eventId(eventId)
-                .eventTopic(Topic.EMAIL_VERIFICATION_REQUEST)
+                .eventTopic(KafkaTopic.EMAIL_VERIFICATION_REQUEST)
                 .build();
 
         processedEvent = repository.save(processedEvent);

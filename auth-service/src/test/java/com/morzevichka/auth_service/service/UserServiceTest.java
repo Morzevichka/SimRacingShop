@@ -170,6 +170,7 @@ public class UserServiceTest {
         assertThat(savedUser.getRole()).isEqualByComparingTo(Role.ROLE_USER);
 
         verify(userRepository).save(any(User.class));
+        verify(outboxService).publishEvent(eq(KafkaTopic.USER_CREATED), any(Event.class));
     }
 
     @Test

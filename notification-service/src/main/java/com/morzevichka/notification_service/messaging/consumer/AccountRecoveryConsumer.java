@@ -2,7 +2,7 @@ package com.morzevichka.notification_service.messaging.consumer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.morzevichka.notification_service.messaging.Topic;
+import com.morzevichka.notification_service.messaging.KafkaTopic;
 import com.morzevichka.notification_service.messaging.event.AccountRecoveryEvent;
 import com.morzevichka.notification_service.messaging.idempotency.ProcessedEvent;
 import com.morzevichka.notification_service.messaging.idempotency.ProcessedEventRepository;
@@ -28,14 +28,14 @@ public class AccountRecoveryConsumer {
     private final ObjectMapper mapper;
 
     @Transactional
-    @KafkaListener(topics = Topic.ACCOUNT_RECOVERY, groupId = "notification-service")
-    public void AccountRecoveryEventHandler(
+    @KafkaListener(topics = KafkaTopic.ACCOUNT_RECOVERY, groupId = "notification-service")
+    public void accountRecoveryEventHandler(
             String stringPayload,
             @Header(KafkaHeaders.RECEIVED_KEY) UUID eventId
     ) throws JsonProcessingException {
         log.info("Received account-recovery-topic with id {}", eventId);
 
-        if (repository.existsByEventIdAndEventTopic(eventId, Topic.ACCOUNT_RECOVERY)) {
+        if (repository.existsByEventIdAndEventTopic(eventId, KafkaTopic.ACCOUNT_RECOVERY)) {
             return ;
         }
 
@@ -51,7 +51,7 @@ public class AccountRecoveryConsumer {
 
         ProcessedEvent processedEvent = ProcessedEvent.builder()
                 .eventId(eventId)
-                .eventTopic(Topic.ACCOUNT_RECOVERY)
+                .eventTopic(KafkaTopic.ACCOUNT_RECOVERY)
                 .build();
 
         processedEvent = repository.save(processedEvent);

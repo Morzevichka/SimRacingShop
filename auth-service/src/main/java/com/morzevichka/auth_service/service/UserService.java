@@ -5,6 +5,7 @@ import com.morzevichka.auth_service.exception.user.UserAccountLockedException;
 import com.morzevichka.auth_service.exception.user.UserAlreadyExistsException;
 import com.morzevichka.auth_service.exception.user.UserEmailNotVerifiedException;
 import com.morzevichka.auth_service.exception.user.UserNotFoundException;
+import com.morzevichka.auth_service.messaging.event.UserCreatedEvent;
 import com.morzevichka.auth_service.messaging.outbox.OutboxService;
 import com.morzevichka.auth_service.messaging.topic.KafkaTopic;
 import com.morzevichka.auth_service.model.user.Role;
@@ -75,6 +76,10 @@ public class UserService {
                 .build();
 
         user = userRepository.save(user);
+
+        UserCreatedEvent event =
+                new UserCreatedEvent(UUID.randomUUID(), user.getEmail(), user.getLogin());
+        outboxService.publishEvent(KafkaTopic.USER_CREATED, event);
 
         return user;
     }
