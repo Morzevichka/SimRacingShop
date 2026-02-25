@@ -1,4 +1,4 @@
-package com.morzevichka.api_gateway.filter;
+package com.morzevichka.gateway_service.filter;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

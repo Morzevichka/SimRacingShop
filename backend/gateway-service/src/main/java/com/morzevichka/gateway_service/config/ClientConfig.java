@@ -1,4 +1,4 @@
-package com.morzevichka.api_gateway.config;
+package com.morzevichka.gateway_service.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

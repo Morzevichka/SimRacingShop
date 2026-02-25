@@ -9,7 +9,7 @@
 		<relativePath/>
 	</parent>
 	<groupId>com.morzevichka</groupId>
-	<artifactId>api-gateway</artifactId>
+	<artifactId>gateway-service</artifactId>
 	<version>0.0.1</version>
 	<name>api-gateway</name>
 	<description>Gateway for Application</description>

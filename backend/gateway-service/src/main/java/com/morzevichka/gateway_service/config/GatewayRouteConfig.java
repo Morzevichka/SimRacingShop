@@ -1,7 +1,7 @@
-package com.morzevichka.api_gateway.config;
+package com.morzevichka.gateway_service.config;
 
-import com.morzevichka.api_gateway.dto.ErrorDto;
-import com.morzevichka.api_gateway.filter.AddAuthorizationHeaderFilter;
+import com.morzevichka.gateway_service.dto.ErrorDto;
+import com.morzevichka.gateway_service.filter.AddAuthorizationHeaderFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -11,13 +11,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
 import java.util.List;
 
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
-import static org.springframework.cloud.gateway.server.mvc.filter.RewriteLocationResponseHeaderFilterFunctions.rewriteLocationResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.path;

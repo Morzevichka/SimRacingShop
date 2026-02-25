@@ -1,4 +1,4 @@
-package com.morzevichka.api_gateway.dto;
+package com.morzevichka.gateway_service.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
