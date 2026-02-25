@@ -1,3 +1,6 @@
 spring:
   application:
     name: order-projector-service
+
+server:
+  port: 8087
