@@ -34,6 +34,9 @@ spring:
           ssl:
             enable: true
 
+services:
+  base-url: ${BASE_URL}
+
 eureka:
   client:
     service-url:

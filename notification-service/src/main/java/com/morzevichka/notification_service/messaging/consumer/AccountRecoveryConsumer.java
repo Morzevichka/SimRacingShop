@@ -6,10 +6,12 @@ import com.morzevichka.notification_service.messaging.KafkaTopic;
 import com.morzevichka.notification_service.messaging.event.AccountRecoveryEvent;
 import com.morzevichka.notification_service.messaging.idempotency.ProcessedEvent;
 import com.morzevichka.notification_service.messaging.idempotency.ProcessedEventRepository;
+import com.morzevichka.notification_service.notification.model.Notification;
 import com.morzevichka.notification_service.notification.model.email.AccountRecoveryNotification;
-import com.morzevichka.notification_service.notification.sender.email.EmailSender;
+import com.morzevichka.notification_service.notification.sender.EmailSender;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
@@ -27,6 +29,9 @@ public class AccountRecoveryConsumer {
     private final EmailSender emailSender;
     private final ObjectMapper mapper;
 
+    @Value("${serives.base-url}")
+    private String baseUrl;
+
     @Transactional
     @KafkaListener(topics = KafkaTopic.ACCOUNT_RECOVERY, groupId = "notification-service")
     public void accountRecoveryEventHandler(
@@ -41,13 +46,15 @@ public class AccountRecoveryConsumer {
 
         AccountRecoveryEvent event = mapper.readValue(stringPayload, AccountRecoveryEvent.class);
 
-        emailSender.send(
-                new AccountRecoveryNotification(
-                        event.getLogin(),
-                        event.getEmail(),
-                        event.getToken()
-                )
+        Notification notification = new AccountRecoveryNotification(
+                event.getLogin(),
+                event.getEmail(),
+                event.getToken(),
+                emailSender,
+                baseUrl
         );
+
+        notification.send();
 
         ProcessedEvent processedEvent = ProcessedEvent.builder()
                 .eventId(eventId)
