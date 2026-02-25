@@ -1,8 +1,7 @@
 package com.morzevichka.notification_service.notification.model.email;
 
-import com.morzevichka.notification_service.notification.model.Notification;
 
-public interface EmailNotification extends Notification {
+public interface EmailNotification {
     String generateHtml();
     String getSubject();
 }
